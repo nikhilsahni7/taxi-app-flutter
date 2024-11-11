@@ -1,10 +1,11 @@
-// lib/main.dart
 import 'package:flutter/material.dart';
 import 'package:myapp/screens/onboarding_screen.dart';
 import 'package:myapp/screens/auth/user_login_screen.dart';
 import 'package:myapp/screens/auth/vendor_login_screen.dart';
 import 'package:myapp/screens/auth/driver_login_screen.dart';
 import 'package:myapp/screens/user/home/home_screen.dart';
+import 'package:myapp/screens/user/referral/referral_screen.dart';
+import 'package:myapp/screens/user/delhi-ncr/delhi_ncr_screen.dart';
 
 void main() {
   runApp(const TaxiSureApp());
@@ -29,7 +30,9 @@ class TaxiSureApp extends StatelessWidget {
         '/user-login': (context) => const UserLoginScreen(),
         '/vendor-login': (context) => const VendorLoginScreen(),
         '/driver-login': (context) => const DriverLoginScreen(),
-        '/user-home': (context) => const UserHomeScreen()
+        '/user-home': (context) => const UserHomeScreen(),
+        '/user-referral': (context) => const ReferralScreen(),
+        '/delhi-ncr-booking': (context) => const DelhiNCRBookingScreen()
       },
     );
   }

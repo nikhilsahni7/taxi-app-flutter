@@ -1,17 +1,12 @@
 // lib/screens/user/home_screen.dart
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import '../../../theme/app_colors.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart';
+import '../../../theme/app_colors.dart';
+import '../rides/ride_home_screen.dart';
+import '../profile/profile_home_screen.dart';
 
-class UserHomeScreen extends StatefulWidget {
-  const UserHomeScreen({super.key});
-
-  @override
-  State<UserHomeScreen> createState() => _UserHomeScreenState();
-}
-
+// Define the ServiceCategory model
 class ServiceCategory {
   final String id;
   final String title;
@@ -28,8 +23,94 @@ class ServiceCategory {
   });
 }
 
+// Define the CarCategory model
+class CarCategory {
+  final String name;
+  final String image;
+  final String price;
+  final String description;
+  final String estimatedTime;
+
+  CarCategory({
+    required this.name,
+    required this.image,
+    required this.price,
+    required this.description,
+    required this.estimatedTime,
+  });
+}
+
+class UserHomeScreen extends StatefulWidget {
+  const UserHomeScreen({super.key});
+
+  @override
+  State<UserHomeScreen> createState() => _UserHomeScreenState();
+}
+
 class _UserHomeScreenState extends State<UserHomeScreen> {
   int _selectedIndex = 0;
+
+  final List<Widget> _screens = [
+    const HomeContent(),
+    const RidesScreen(),
+    const WalletHomeScreen(), // Placeholder for Wallet screen
+    const ProfileScreen(),
+  ];
+
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
+  }
+
+  Widget _buildBottomNavigationBar() {
+    return BottomNavigationBar(
+      backgroundColor: AppColors.surface,
+      selectedItemColor: AppColors.primary,
+      unselectedItemColor: AppColors.caption,
+      currentIndex: _selectedIndex,
+      onTap: _onItemTapped,
+      type: BottomNavigationBarType.fixed,
+      items: const [
+        BottomNavigationBarItem(
+          icon: Icon(Icons.home_rounded),
+          label: 'Home',
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.directions_car_rounded),
+          label: 'Rides',
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.account_balance_wallet_rounded),
+          label: 'Wallet',
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.person_rounded),
+          label: 'Profile',
+        ),
+      ],
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      body: _screens[_selectedIndex],
+      bottomNavigationBar: _buildBottomNavigationBar(),
+    );
+  }
+}
+
+// Extracted Home Content into a separate widget
+class HomeContent extends StatefulWidget {
+  const HomeContent({super.key});
+
+  @override
+  State<HomeContent> createState() => _HomeContentState();
+}
+
+class _HomeContentState extends State<HomeContent> {
   Position? _currentPosition;
   String _currentAddress = "Getting location...";
   bool _isLoadingLocation = true;
@@ -180,7 +261,7 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
         Placemark place = placemarks[0];
         setState(() {
           _currentAddress =
-              '${place.subLocality}, ${place.locality}, ${place.administrativeArea},${place.postalCode}';
+              '${place.subLocality}, ${place.locality}, ${place.administrativeArea}, ${place.postalCode}';
           _isLoadingLocation = false;
         });
       }
@@ -193,12 +274,125 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
     }
   }
 
+  Widget _buildQuickAction(IconData icon, String label, Color color,
+      {VoidCallback? onTap}) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.1),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(icon, color: color, size: 24),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            label,
+            style: const TextStyle(
+              color: AppColors.text,
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCarCard(CarCategory car) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+      child: Container(
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.divider.withOpacity(0.1),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Row(
+            children: [
+              Image.asset(
+                car.image,
+                width: 80,
+                height: 80,
+                fit: BoxFit.contain,
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          car.name,
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.text,
+                          ),
+                        ),
+                        Text(
+                          car.price,
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.primary,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      car.description,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: AppColors.caption,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        const Icon(Icons.access_time,
+                            size: 16, color: AppColors.caption),
+                        const SizedBox(width: 4),
+                        Text(
+                          car.estimatedTime,
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: AppColors.caption,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      body: SafeArea(
+    return SafeArea(
+      child: RefreshIndicator(
+        onRefresh: _getCurrentLocation,
         child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -328,12 +522,37 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
                     _buildQuickAction(
-                        Icons.history, 'Recent', AppColors.primary),
-                    _buildQuickAction(Icons.favorite, 'Saved', AppColors.error),
+                      Icons.history,
+                      'Recent',
+                      AppColors.primary,
+                      onTap: () {
+                        // Handle recent rides
+                      },
+                    ),
                     _buildQuickAction(
-                        Icons.local_offer, 'Offers', AppColors.warning),
+                      Icons.favorite,
+                      'Saved',
+                      AppColors.error,
+                      onTap: () {
+                        // Handle saved locations
+                      },
+                    ),
                     _buildQuickAction(
-                        Icons.support_agent, 'Support', AppColors.success),
+                      Icons.card_giftcard,
+                      'Refer',
+                      AppColors.success,
+                      onTap: () {
+                        Navigator.pushNamed(context, '/user-referral');
+                      },
+                    ),
+                    _buildQuickAction(
+                      Icons.support_agent,
+                      'Support',
+                      AppColors.warning,
+                      onTap: () {
+                        // Handle support
+                      },
+                    ),
                   ],
                 ),
               ),
@@ -391,37 +610,45 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
           ),
         ),
       ),
-      bottomNavigationBar: _buildBottomNavigationBar(),
     );
   }
+}
 
-  Widget _buildQuickAction(IconData icon, String label, Color color) {
-    return Column(
-      children: [
-        Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: color.withOpacity(0.1),
-            shape: BoxShape.circle,
-          ),
-          child: Icon(icon, color: color, size: 24),
+// Placeholder for Wallet screen
+class WalletHomeScreen extends StatelessWidget {
+  const WalletHomeScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Your Wallet'),
+      ),
+      body: Center(
+        child: Text(
+          'Your wallet details will appear here.',
+          style: Theme.of(context).textTheme.titleLarge,
         ),
-        const SizedBox(height: 8),
-        Text(
-          label,
-          style: const TextStyle(
-            color: AppColors.text,
-            fontSize: 12,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-      ],
+      ),
     );
   }
+}
 
-  Widget _buildCarCard(CarCategory car) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+// ServiceCard widget
+class ServiceCard extends StatelessWidget {
+  final ServiceCategory service;
+
+  const ServiceCard({super.key, required this.service});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () {
+        // Handle navigation based on service type
+        if (service.id == 'delhi-ncr') {
+          Navigator.pushNamed(context, '/delhi-ncr-booking');
+        }
+      },
       child: Container(
         decoration: BoxDecoration(
           color: AppColors.surface,
@@ -434,174 +661,22 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
             ),
           ],
         ),
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Row(
-            children: [
-              Image.asset(
-                car.image,
-                width: 80,
-                height: 80,
-                fit: BoxFit.contain,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(service.icon, size: 32, color: service.color),
+            const SizedBox(height: 8),
+            Text(
+              service.title,
+              style: const TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                color: AppColors.text,
               ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          car.name,
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.text,
-                          ),
-                        ),
-                        Text(
-                          car.price,
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.primary,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      car.description,
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: AppColors.caption,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Row(
-                      children: [
-                        const Icon(Icons.access_time,
-                            size: 16, color: AppColors.caption),
-                        const SizedBox(width: 4),
-                        Text(
-                          car.estimatedTime,
-                          style: const TextStyle(
-                            fontSize: 12,
-                            color: AppColors.caption,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildBottomNavigationBar() {
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.divider.withOpacity(0.1),
-            blurRadius: 8,
-            offset: const Offset(0, -2),
-          ),
-        ],
-      ),
-      child: BottomNavigationBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        selectedItemColor: AppColors.primary,
-        unselectedItemColor: AppColors.caption,
-        currentIndex: _selectedIndex,
-        onTap: _onItemTapped,
-        type: BottomNavigationBarType.fixed,
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home_rounded),
-            label: 'Home',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.directions_car_rounded),
-            label: 'Rides',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.account_balance_wallet_rounded),
-            label: 'Wallet',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person_rounded),
-            label: 'Profile',
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
-  }
-}
-
-class CarCategory {
-  final String name;
-  final String image;
-  final String price;
-  final String description;
-  final String estimatedTime;
-
-  CarCategory({
-    required this.name,
-    required this.image,
-    required this.price,
-    required this.description,
-    required this.estimatedTime,
-  });
-}
-
-class ServiceCard extends StatelessWidget {
-  final ServiceCategory service;
-
-  const ServiceCard({super.key, required this.service});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.divider.withOpacity(0.1),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(service.icon, size: 32, color: service.color),
-          const SizedBox(height: 8),
-          Text(
-            service.title,
-            style: const TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
-              color: AppColors.text,
+              textAlign: TextAlign.center,
             ),
-            textAlign: TextAlign.center,
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
